@@ -1,7 +1,7 @@
 from typing import List
 
 from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import SystemMessage, HumanMessage
 
 from models import Intent, IntentAnalysis
 
@@ -23,30 +23,22 @@ def analyze_intent_and_summary(text: str, summary_threshold_chars: int = 600) ->
     """
     intents: List[str] = [i.value for i in Intent]
 
-    system = (
-        "You are an intent classifier. Determine the user's primary intent from the list. "
-        "Also compute input length (characters). If input length exceeds the threshold, set "
-        "needs_summary true and include a concise 1-3 sentence summary of the request."
-    )
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", system),
-            (
-                "user",
-                "Available intents: {intents}\nThreshold (chars): {threshold}\n\nUser input:\n{text}",
-            ),
-        ]
-    )
-
     llm = get_mini_model()
     structured_llm = llm.with_structured_output(schema=IntentAnalysis)
-    chain = prompt | structured_llm
-    return chain.invoke(
-        {
-            "intents": ", ".join(intents),
-            "threshold": summary_threshold_chars,
-            "text": text,
-        }
+    system_msg = SystemMessage(
+        content=(
+            "You are an intent classifier. Determine the user's primary intent from the list. "
+            "Also compute input length (characters). If input length exceeds the threshold, set "
+            "needs_summary true and include a concise 1-3 sentence summary of the request."
+        )
     )
+    human_msg = HumanMessage(
+        content=(
+            f"Available intents: {', '.join(intents)}\n"
+            f"Threshold (chars): {summary_threshold_chars}\n\n"
+            f"User input:\n{text}"
+        )
+    )
+    return structured_llm.invoke([system_msg, human_msg])
 
 

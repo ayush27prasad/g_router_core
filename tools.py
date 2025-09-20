@@ -1,88 +1,66 @@
 from typing import Optional
 
 from openai import OpenAI
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import SystemMessage, HumanMessage
 
 from llm import get_mini_model, get_capable_model
 from models import ToolResponse, ToolResponseType
 
 
 def summary(text: str) -> ToolResponse:
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                "Summarize the user's request into 3-5 bullet points. Be faithful and concise.",
-            ),
-            ("user", "{text}"),
-        ]
-    )
     llm = get_mini_model(temperature=0.1)
-    chain = prompt | llm
-    content = chain.invoke({"text": text}).content
+    msgs = [
+        SystemMessage(content="Summarize the user's request into 3-5 bullet points. Be faithful and concise."),
+        HumanMessage(content=text),
+    ]
+    content = llm.invoke(msgs).content
     return ToolResponse(type=ToolResponseType.MARKDOWN, content=content, meta={"tool": "summary"})
 
 
 def basic_qa(question: str) -> ToolResponse:
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", "Answer concisely and helpfully. Use markdown for structure when useful."),
-            ("user", "{question}"),
-        ]
-    )
     llm = get_mini_model(temperature=0.2)
-    chain = prompt | llm
-    content = chain.invoke({"question": question}).content
+    msgs = [
+        SystemMessage(content="Answer concisely and helpfully. Use markdown for structure when useful."),
+        HumanMessage(content=question),
+    ]
+    content = llm.invoke(msgs).content
     return ToolResponse(type=ToolResponseType.MARKDOWN, content=content, meta={"tool": "basic_qa"})
 
 
 def code_generation(instruction: str) -> ToolResponse:
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                "Generate correct, production-quality code with minimal explanations. "
-                "Prefer idiomatic patterns and include a single fenced code block.",
-            ),
-            ("user", "{instruction}"),
-        ]
-    )
     llm = get_capable_model(temperature=0.2)
-    chain = prompt | llm
-    content = chain.invoke({"instruction": instruction}).content
+    msgs = [
+        SystemMessage(content=(
+            "Generate correct, production-quality code with minimal explanations. "
+            "Prefer idiomatic patterns and include a single fenced code block."
+        )),
+        HumanMessage(content=instruction),
+    ]
+    content = llm.invoke(msgs).content
     return ToolResponse(type=ToolResponseType.MARKDOWN, content=content, meta={"tool": "code_generation"})
 
 
 def debug_code(code: str, issue: Optional[str] = None) -> ToolResponse:
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                "You are a senior engineer. Find the root cause and propose a minimal fix. "
-                "If relevant, provide a small diff or corrected snippet.",
-            ),
-            ("user", "Code:\n```\n{code}\n```\n\nIssue:\n{issue}"),
-        ]
-    )
     llm = get_capable_model(temperature=0.2)
-    chain = prompt | llm
-    content = chain.invoke({"code": code, "issue": issue or ""}).content
+    user_content = f"Code:\n```\n{code}\n```\n\nIssue:\n{issue or ''}"
+    msgs = [
+        SystemMessage(content=(
+            "You are a senior engineer. Find the root cause and propose a minimal fix. "
+            "If relevant, provide a small diff or corrected snippet."
+        )),
+        HumanMessage(content=user_content),
+    ]
+    content = llm.invoke(msgs).content
     return ToolResponse(type=ToolResponseType.MARKDOWN, content=content, meta={"tool": "debug_code"})
 
 
 def solve_math(problem: str) -> ToolResponse:
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                "Solve the problem step-by-step. Provide the final numeric or symbolic answer.",
-            ),
-            ("user", "{problem}"),
-        ]
-    )
     llm = get_mini_model(temperature=0.0)
-    chain = prompt | llm
-    content = chain.invoke({"problem": problem}).content
+    msgs = [
+        SystemMessage(content="Solve the problem step-by-step. Provide the final numeric or symbolic answer."),
+        HumanMessage(content=problem),
+    ]
+    content = llm.invoke(msgs).content
     return ToolResponse(type=ToolResponseType.MARKDOWN, content=content, meta={"tool": "math_solve"})
 
 
