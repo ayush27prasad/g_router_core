@@ -34,15 +34,3 @@ class ModelProvider(str, Enum):
     DEEPSEEK = "deepseek"
     GEMINI = "gemini"
     SARVAM = "sarvam"
-
-def get_model_provider(model_name: ModelName) -> ModelProvider:
-    model_provider_company_mapping : Dict[ModelName, ModelProvider] = {
-        ModelName.OPEN_AI_GPT_4O_MINI: ModelProvider.OPEN_AI,
-        ModelName.OPEN_AI_GPT_5: ModelProvider.OPEN_AI,
-        ModelName.ANTHROPIC_OPUS: ModelProvider.ANTHROPIC,
-        ModelName.PERPLEXITY_O3: ModelProvider.PERPLEXITY,
-        ModelName.GROK_4: ModelProvider.X_AI,
-        ModelName.GEMINI_NANO_BANANA: ModelProvider.GEMINI,
-        ModelName.SARVAM_V2: ModelProvider.SARVAM,
-    }
-    return model_provider_company_mapping[model_name]

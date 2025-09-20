@@ -1,4 +1,4 @@
-from typing import Dict, Any, TypedDict
+from typing import TypedDict, Annotated
 
 from pydantic import BaseModel, Field
 
@@ -15,7 +15,9 @@ class ToolResponse(BaseModel):
     """Unified tool response model."""
     type: ToolResponseType
     content: str
-    meta: Dict[str, Any] = Field(default_factory=dict)
+    class Config:
+        extra = "allow"
+        arbitrary_types_allowed = True 
 
 class RouterGraphState(TypedDict, total=False):
     input_text: str

@@ -2,12 +2,12 @@ import os
 import sys
 
 from graph import build_router_graph
-from models.models import RouterGraphState, ToolResponse
+from schemas.models import RouterGraphState, ToolResponse
 from dotenv import load_dotenv
 
 
 def run(query: str) -> None:
-    print("Building router graph...")
+    
     graph = build_router_graph()
     state = RouterGraphState(input_text=query)
     result = graph.invoke(state)
@@ -23,7 +23,8 @@ def run(query: str) -> None:
 
 if __name__ == "__main__":
     load_dotenv()
-    query = input("Hi Try asking me something! : \n > ")
-    run(query)
-
+    print("Hi Try asking me something! : ")
+    while True:
+        query = input("\n > ")
+        run(query)
 

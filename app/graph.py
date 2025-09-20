@@ -2,10 +2,9 @@ from typing import Callable, Literal, Dict
 
 from langgraph.graph import StateGraph, START, END
 
-from tools import analyze_intent
-from models.models import RouterGraphState, Intent, ToolResponse
-from models.enums import Intent, ModelProvider, get_model_provider, ToolResponseType
-
+import tools
+from schemas.models import RouterGraphState, Intent
+from schemas.enums import Intent
 
 
 allowed_nodes = [
@@ -18,6 +17,7 @@ allowed_nodes = [
     "other",
 ]
 
+# Analyze the user query and update the analysis in the state
 def _analyze_user_query(state: RouterGraphState) ->  RouterGraphState:
     
     # if model_name is provided, directly call the LLM using d2llm node
@@ -26,7 +26,7 @@ def _analyze_user_query(state: RouterGraphState) ->  RouterGraphState:
     if (req_model_name == None):
         text = state["input_text"]    
         # if model_name is not provided, analyze the intent
-        analysis = analyze_intent(text)
+        analysis = tools.analyze_intent(text)
         print(f"User Query Analysis : {analysis.__pretty__}")
     
         # Update the analysis in the state
@@ -38,6 +38,7 @@ def _analyze_user_query(state: RouterGraphState) ->  RouterGraphState:
     # return the updated state with the analysis from the classifier model
     return state
 
+# Route the user query to the appropriate node
 def _route_user_query(state: RouterGraphState) ->  Literal[*allowed_nodes]:
 
     # if model_name is provided, directly call the LLM using d2llm node
@@ -65,57 +66,47 @@ def _route_user_query(state: RouterGraphState) ->  Literal[*allowed_nodes]:
 
 def _resolve_reasoning_query(state: RouterGraphState) -> RouterGraphState:
     # call the reasoning model tool
-    print("Resolving reasoning query...")
-    state["response"] : ToolResponse = ToolResponse(type=ToolResponseType.TEXT, content="This is a response from the reasoning model")
+    state["response"] = tools.call_reasoning_model(state["input_text"])
     return state
 
 def _resolve_coding_query(state: RouterGraphState) -> RouterGraphState:
     # call the coding model tool
+    state["response"] = tools.call_coding_model(state["input_text"])
     return state
 
 def _generate_image(state: RouterGraphState) -> RouterGraphState:
     # call the coding model tool
+    state["response"] = tools.call_image_generation_model(state["input_text"])
     return state
 
 def _fetch_real_time_info(state: RouterGraphState) -> RouterGraphState:
     # call the RAG model tool
+    state["response"] = tools.call_real_time_info_model(state["input_text"])
     return state
 
 def _resolve_localized_india_query(state: RouterGraphState) -> RouterGraphState:
-    # call the RAG model tool
+    # call the Sarvam model
+    state["response"] = tools.call_real_time_info_model(state["input_text"])
     return state
 
 def _default_llm_call(state: RouterGraphState) -> RouterGraphState:
     # call the default LLM tool
+    state["response"] = tools.call_default_model(state["input_text"])
     return state
 
 def _call_model_by_name(state: RouterGraphState) -> RouterGraphState:
     
     req_model_name = state["request_model_name"]
     
-    model_provider = get_model_provider(req_model_name)
+    if (req_model_name == None):
+        raise ValueError("Invalid request model name!!!")
 
-    user_query = state["input_text"]
-    
-    response : ToolResponse = None
-
-    if model_provider == ModelProvider.OPEN_AI:
-        response = _call_openai(user_query)
-    elif model_provider == ModelProvider.ANTHROPIC:
-        response = _call_anthropic(user_query)
-    elif model_provider == ModelProvider.PERPLEXITY:
-        response = _call_perplexity(user_query)
-    elif model_provider == ModelProvider.X_AI:
-        response = _call_grok(user_query)
-    elif model_provider == ModelProvider.GEMINI:
-        response = _call_gemini(user_query)
-    elif model_provider == ModelProvider.SARVAM:
-        response = _call_sarvam(user_query)
-    
-    state["response"] = response
+    # call the model by name
+    state["response"] = tools.call_model_by_name(req_model_name, state["input_text"])
 
     return state
 
+# Build the router graph
 def build_router_graph() -> Callable[[RouterGraphState], RouterGraphState]:
     graph = StateGraph(RouterGraphState)
 
@@ -138,7 +129,7 @@ def build_router_graph() -> Callable[[RouterGraphState], RouterGraphState]:
     graph.add_conditional_edges("analyze", _route_user_query)
 
     for node in allowed_nodes:
-        graph.add_edge(node, END)
+        graph.add_edge(node, END) # Add edges to the end node for all nodes
 
     # Compile the graph
     return graph.compile()
