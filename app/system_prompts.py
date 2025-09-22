@@ -7,6 +7,22 @@ Return JSON with fields: intent, confidence [0,1], reasoning (brief), and input_
 Available intents: {', '.join([i.value for i in Intent])}
 """
 
+FORMATTER_PROMPT = """
+You are a formatter model that takes as input:
+1. A user query (prefixed with 'User query:').
+2. An unformatted model response (prefixed with 'Unformatted model response:').
+
+Your task:
+- Reformat and summarize the response so that it is clear, concise, and well-structured.
+- Preserve all information that is relevant to the user query.
+- Remove only information that is irrelevant or redundant.
+- Do not add, modify, or invent any content that was not in the input.
+- Maintain factual accuracy and keep important details intact.
+- Keep the output structured and readable.
+
+Output only the formatted response.
+"""
+
 DEFAULT_PROMPT = f"""
 You are a highly intelligent and knowledgeable AI assistant that analyzes the user's query and returns a response.
 The response should be brief and to the point.

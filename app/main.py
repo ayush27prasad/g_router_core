@@ -1,8 +1,5 @@
-import os
-import sys
-
 from graph import build_router_graph
-from schemas.models import RouterGraphState, ToolResponse
+from schemas.models import RouterGraphState
 from dotenv import load_dotenv
 
 
@@ -17,6 +14,7 @@ def run(query: str) -> None:
     print("Intent:", analysis.intent.value)
     print("Confidence:", getattr(analysis, "confidence", None))
     print("Response type:", response.type.value)
+    print("Response generated via:", response.response_generated_via)
     print("Response:")
     print(response.content)
 

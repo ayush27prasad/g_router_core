@@ -27,7 +27,7 @@ def _analyze_user_query(state: RouterGraphState) ->  RouterGraphState:
         text = state["input_text"]    
         # if model_name is not provided, analyze the intent
         analysis = tools.analyze_intent(text)
-        print(f"User Query Analysis : {analysis.__pretty__}")
+        print(f"User Query Analysis : {analysis}")
     
         # Update the analysis in the state
         state["analysis"] = analysis
@@ -81,12 +81,12 @@ def _generate_image(state: RouterGraphState) -> RouterGraphState:
 
 def _fetch_real_time_info(state: RouterGraphState) -> RouterGraphState:
     # call the RAG model tool
-    state["response"] = tools.call_real_time_info_model(state["input_text"])
+    state["response"] = tools.call_realtime_info_model(state["input_text"])
     return state
 
 def _resolve_localized_india_query(state: RouterGraphState) -> RouterGraphState:
     # call the Sarvam model
-    state["response"] = tools.call_real_time_info_model(state["input_text"])
+    state["response"] = tools.call_realtime_info_model(state["input_text"])
     return state
 
 def _default_llm_call(state: RouterGraphState) -> RouterGraphState:

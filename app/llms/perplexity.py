@@ -12,7 +12,7 @@ def call_perplexity(model_name: str, system_msg: str, human_msg: str) -> ToolRes
     response = model.invoke([SystemMessage(system_msg), HumanMessage(human_msg)])
     return ToolResponse(type=ToolResponseType.TEXT, content=str(response))
 
-def call_perplexity_api(model_name: str, system_msg: str, human_msg: str) -> ToolResponse:
+def call_perplexity_api(model_name: str, system_msg: str, human_msg: str) -> str:
     """Call the Perplexity API directly."""
     API_KEY = os.getenv("PPLX_API_KEY")
 
@@ -28,7 +28,9 @@ def call_perplexity_api(model_name: str, system_msg: str, human_msg: str) -> Too
             {"role": "user", "content": human_msg}
         ]
     )
-    return ToolResponse(type=ToolResponseType.TEXT, content=resp.choices[0].message.content)
+    response_content = resp.choices[0].message.content
+    print(f"Perplexity Response : {response_content}")
+    return response_content
 
 
 

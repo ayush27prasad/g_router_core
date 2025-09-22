@@ -14,7 +14,7 @@ class Intent(str, Enum):
 class ToolResponseType(str, Enum):
     TEXT = "text"
     MARKDOWN = "markdown"
-    IMAGE = "image"
+    IMAGE_URL = "image_url"
     BYTE_ARRAY = "byte_array"
 
 class ModelName(str, Enum):
@@ -23,7 +23,7 @@ class ModelName(str, Enum):
     ANTHROPIC_OPUS = "claude-3.5-sonnet"
     PERPLEXITY_O3 = "o3"
     GROK_4 = "grok-4"
-    GEMINI_NANO_BANANA = "gemini-nano-banana"
+    GEMINI_NANO_BANANA = "gemini-2.5-flash-image-preview"
     SARVAM_V2 = "sarvam-v2"
 
 class ModelProvider(str, Enum):

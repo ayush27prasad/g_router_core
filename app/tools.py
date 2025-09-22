@@ -3,7 +3,7 @@ from typing import Dict
 from llms.openai import get_mini_model, call_openai
 from llms.anthropic import call_anthropic
 from llms.sarvam import call_sarvam
-from llms.google import call_gemini_image_model, call_gemini
+from llms.google import call_gemini_image_generation_model, call_gemini
 from llms.perplexity import call_perplexity, call_perplexity_api
 from llms.xai import call_grok
 from schemas.models import IntentAnalysis, ToolResponse
@@ -20,37 +20,52 @@ def call_reasoning_model(user_query: str) -> ToolResponse:
     """Resolve reasoning query."""
     reasoning_model_name = "gpt-5-mini"
     reasoning_model_response = call_openai(model_name=reasoning_model_name, system_msg=REASONING_PROMPT, human_msg=user_query)
+    reasoning_model_response.response_generated_via = reasoning_model_name
     return reasoning_model_response
 
 def call_coding_model(user_query: str) -> ToolResponse:
     """Resolve coding query."""
     coding_model_name = "claude-opus-4-1-20250805"
     coding_model_response = call_anthropic(model_name=coding_model_name, system_msg=CODING_PROMPT, human_msg=user_query)
+    coding_model_response.response_generated_via = coding_model_name
     return coding_model_response
 
 def call_image_generation_model(user_query: str) -> ToolResponse:
-    """Generate image."""
-    image_generation_model_name = "gemini-nano-banana"
-    image_generation_model_response = call_gemini_image_model(model_name=image_generation_model_name, system_msg=IMAGE_GENERATION_PROMPT, human_msg=user_query)
+    """Generate image as per the user's request."""
+    image_generation_model_name = "gemini-2.5-flash-image-preview" # aka gemini-nano-banana
+    image_generation_model_response = call_gemini_image_generation_model(model_name=image_generation_model_name, system_msg=IMAGE_GENERATION_PROMPT, human_msg=user_query)
+    image_generation_model_response.response_generated_via = image_generation_model_name
     return image_generation_model_response
 
-def call_real_time_info_model(user_query: str) -> ToolResponse:
+def call_realtime_info_model(user_query: str) -> ToolResponse:
     """Fetch real time info."""
-    real_time_info_model_name = "sonar-pro"
-    real_time_info_model_response = call_perplexity_api(model_name=real_time_info_model_name, system_msg=REAL_TIME_INFO_PROMPT, human_msg=user_query)
-    return real_time_info_model_response
+    realtime_model_name = "sonar-pro"
+    realtime_model_response = call_perplexity_api(model_name=realtime_model_name, system_msg=REAL_TIME_INFO_PROMPT, human_msg=user_query)
+    realtime_model_formatted_response = _format_model_response(user_query=user_query, unformatted_model_response=realtime_model_response)
+    realtime_model_formatted_response.response_generated_via = realtime_model_name
+    return realtime_model_formatted_response
 
 def call_sarvam_model(user_query: str) -> ToolResponse:
     """Fetch real time info."""
     sarvam_model_name = "sarvam-v2"
     sarvam_model_response = call_sarvam(model_name=sarvam_model_name, system_msg=SARVAM_PROMPT, human_msg=user_query)
+    sarvam_model_response.response_generated_via = sarvam_model_name
     return sarvam_model_response
 
 def call_default_model(user_query: str) -> ToolResponse:
     """Call the default model."""
     default_model_name = "gpt-4o-mini"
     default_model_response = call_openai(model_name=default_model_name, system_msg=DEFAULT_PROMPT, human_msg=user_query)
+    default_model_response.response_generated_via = default_model_name
     return default_model_response
+
+
+def _format_model_response(user_query: str, unformatted_model_response: str) -> ToolResponse:
+    """Format the model response."""
+    formatter_model_name = "gpt-4o-mini"
+    message = f"User query: {user_query}\nUnformatted model response: {unformatted_model_response}"
+    formatter_model_response = call_openai(model_name=formatter_model_name, system_msg=FORMATTER_PROMPT, human_msg=message)
+    return formatter_model_response
 
 def call_model_by_name(model_name: str, user_query: str) -> ToolResponse:
     """Call the model by model name."""

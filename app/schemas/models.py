@@ -15,9 +15,7 @@ class ToolResponse(BaseModel):
     """Unified tool response model."""
     type: ToolResponseType
     content: str
-    class Config:
-        extra = "allow"
-        arbitrary_types_allowed = True 
+    response_generated_via: str
 
 class RouterGraphState(TypedDict, total=False):
     input_text: str
