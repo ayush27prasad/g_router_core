@@ -66,32 +66,44 @@ def _route_user_query(state: RouterGraphState) ->  Literal[*allowed_nodes]:
 
 def _resolve_reasoning_query(state: RouterGraphState) -> RouterGraphState:
     # call the reasoning model tool
-    state["response"] = tools.call_reasoning_model(state["input_text"])
+    tool_response = tools.call_reasoning_model(state["input_text"])
+    state["response"] = tool_response
+    state["response_model_name"] = tool_response.response_generated_via
     return state
 
 def _resolve_coding_query(state: RouterGraphState) -> RouterGraphState:
     # call the coding model tool
-    state["response"] = tools.call_coding_model(state["input_text"])
+    tool_response = tools.call_coding_model(state["input_text"])
+    state["response"] = tool_response
+    state["response_model_name"] = tool_response.response_generated_via
     return state
 
 def _generate_image(state: RouterGraphState) -> RouterGraphState:
     # call the coding model tool
-    state["response"] = tools.call_image_generation_model(state["input_text"])
+    tool_response = tools.call_image_generation_model(state["input_text"])
+    state["response"] = tool_response
+    state["response_model_name"] = tool_response.response_generated_via
     return state
 
 def _fetch_real_time_info(state: RouterGraphState) -> RouterGraphState:
     # call the RAG model tool
-    state["response"] = tools.call_realtime_info_model(state["input_text"])
+    tool_response = tools.call_realtime_info_model(state["input_text"])
+    state["response"] = tool_response
+    state["response_model_name"] = tool_response.response_generated_via
     return state
 
 def _resolve_localized_india_query(state: RouterGraphState) -> RouterGraphState:
     # call the Sarvam model
-    state["response"] = tools.call_realtime_info_model(state["input_text"])
+    tool_response = tools.call_realtime_info_model(state["input_text"])
+    state["response"] = tool_response
+    state["response_model_name"] = tool_response.response_generated_via
     return state
 
 def _default_llm_call(state: RouterGraphState) -> RouterGraphState:
     # call the default LLM tool
-    state["response"] = tools.call_default_model(state["input_text"])
+    tool_response = tools.call_default_model(state["input_text"])
+    state["response"] = tool_response
+    state["response_model_name"] = tool_response.response_generated_via
     return state
 
 def _call_model_by_name(state: RouterGraphState) -> RouterGraphState:
@@ -102,7 +114,9 @@ def _call_model_by_name(state: RouterGraphState) -> RouterGraphState:
         raise ValueError("Invalid request model name!!!")
 
     # call the model by name
-    state["response"] = tools.call_model_by_name(req_model_name, state["input_text"])
+    tool_response = tools.call_model_by_name(req_model_name, state["input_text"])
+    state["response"] = tool_response
+    state["response_model_name"] = tool_response.response_generated_via
 
     return state
 

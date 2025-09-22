@@ -6,7 +6,8 @@ from app.schemas.models import ToolResponse
 
 def get_mini_model(temperature: float = 0.2) -> ChatOpenAI:
     """Return a GPT mini chat model for lightweight tasks."""
-    mini_model = ChatOpenAI(model="gpt-5-mini", temperature=temperature)
+    mini_model_name = "gpt-5-nano"
+    mini_model = ChatOpenAI(model=mini_model_name, temperature=temperature)
     return mini_model
 
 def call_openai(model_name: str, system_msg : str, human_msg: str) -> ToolResponse:

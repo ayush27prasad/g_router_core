@@ -18,7 +18,7 @@ def analyze_intent(user_query: str) -> IntentAnalysis:
 
 def call_reasoning_model(user_query: str) -> ToolResponse:
     """Resolve reasoning query."""
-    reasoning_model_name = "gpt-5-mini"
+    reasoning_model_name = "gpt-3.5-turbo"
     reasoning_model_response = call_openai(model_name=reasoning_model_name, system_msg=REASONING_PROMPT, human_msg=user_query)
     reasoning_model_response.response_generated_via = reasoning_model_name
     return reasoning_model_response
@@ -54,7 +54,7 @@ def call_sarvam_model(user_query: str) -> ToolResponse:
 
 def call_default_model(user_query: str) -> ToolResponse:
     """Call the default model."""
-    default_model_name = "gpt-4o-mini"
+    default_model_name = "gpt-5-nano"
     default_model_response = call_openai(model_name=default_model_name, system_msg=DEFAULT_PROMPT, human_msg=user_query)
     default_model_response.response_generated_via = default_model_name
     return default_model_response

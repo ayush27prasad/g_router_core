@@ -1,8 +1,8 @@
-from typing import TypedDict, Annotated
+from typing import TypedDict, Optional
 
 from pydantic import BaseModel, Field
 
-from .enums import Intent, ToolResponseType, ModelName
+from .enums import Intent, ToolResponseType
 
 
 class IntentAnalysis(BaseModel):
@@ -19,8 +19,8 @@ class ToolResponse(BaseModel):
 
 class RouterGraphState(TypedDict, total=False):
     input_text: str
-    request_model_name: ModelName
-    response_model_name: ModelName
+    request_model_name: Optional[str]
+    response_model_name: str
     analysis: IntentAnalysis
     response: ToolResponse
 
