@@ -1,15 +1,15 @@
 from langchain_core.messages import SystemMessage, HumanMessage
 from typing import Dict
-from llms.openai import get_mini_model, call_openai
-from llms.anthropic import call_anthropic
-from llms.sarvam import call_sarvam
-from llms.google import call_gemini_image_generation_model, call_gemini
-from llms.perplexity import call_perplexity, call_perplexity_api
-from llms.xai import call_grok
-from schemas.models import IntentAnalysis, ToolResponse
-from schemas.enums import ModelName, ModelProvider
+from app.llms.openai import get_mini_model, call_openai
+from app.llms.anthropic import call_anthropic
+from app.llms.sarvam import call_sarvam
+from app.llms.google import call_gemini_image_generation_model, call_gemini
+from app.llms.perplexity import call_perplexity, call_perplexity_api
+from app.llms.xai import call_grok
+from app.schemas.models import IntentAnalysis, ToolResponse
+from app.schemas.enums import ModelName, ModelProvider
 
-from system_prompts import *
+from app.system_prompts import *
 
 def analyze_intent(user_query: str) -> IntentAnalysis:
     """Analyze user intent only using structured output."""

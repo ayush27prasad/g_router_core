@@ -1,4 +1,4 @@
-from schemas.enums import Intent
+from app.schemas.enums import Intent
 
 
 INTENT_CLASSIFIER_PROMPT = f"""

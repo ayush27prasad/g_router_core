@@ -1,7 +1,7 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 
-from schemas.models import ToolResponse
+from app.schemas.models import ToolResponse
 
 
 def get_mini_model(temperature: float = 0.2) -> ChatOpenAI:

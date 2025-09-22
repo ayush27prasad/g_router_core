@@ -1,6 +1,6 @@
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import SystemMessage, HumanMessage
-from schemas.models import ToolResponse
+from app.schemas.models import ToolResponse
 
 
 def call_anthropic(model_name: str, system_msg: str, human_msg: str) -> ToolResponse:

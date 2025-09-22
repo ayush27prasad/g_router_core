@@ -1,6 +1,6 @@
 from langchain_xai import ChatXAI
 from langchain_core.messages import SystemMessage, HumanMessage
-from schemas.models import ToolResponse
+from app.schemas.models import ToolResponse
 
 
 def call_grok(system_msg: str, human_msg: str) -> ToolResponse:

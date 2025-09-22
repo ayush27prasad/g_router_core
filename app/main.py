@@ -1,5 +1,5 @@
 from graph import build_router_graph
-from schemas.models import RouterGraphState
+from app.schemas.models import RouterGraphState
 from dotenv import load_dotenv
 
 
@@ -8,6 +8,7 @@ def run(query: str) -> None:
     graph = build_router_graph()
     state = RouterGraphState(input_text=query)
     result = graph.invoke(state)
+    
     analysis = result.get("analysis")
     response = result.get("response")
 
@@ -18,7 +19,7 @@ def run(query: str) -> None:
     print("Response:")
     print(response.content)
 
-
+# Run via terminal
 if __name__ == "__main__":
     load_dotenv()
     print("Hi Try asking me something! : ")

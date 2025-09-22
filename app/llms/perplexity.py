@@ -1,7 +1,7 @@
 from langchain_perplexity import ChatPerplexity
 from langchain_core.messages import SystemMessage, HumanMessage
-from schemas.models import ToolResponse
-from schemas.enums import ToolResponseType
+from app.schemas.models import ToolResponse
+from app.schemas.enums import ToolResponseType
 from openai import OpenAI
 import os
 

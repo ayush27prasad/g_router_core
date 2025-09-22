@@ -1,8 +1,8 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import SystemMessage, HumanMessage
-from schemas.models import ToolResponse
-from schemas.enums import ToolResponseType 
-from utils import save_base64_to_downloads
+from app.schemas.models import ToolResponse
+from app.schemas.enums import ToolResponseType 
+from app.utils import save_base64_to_downloads
 
 
 def call_gemini_image_generation_model(model_name: str, system_msg: str, human_msg: str) -> ToolResponse:

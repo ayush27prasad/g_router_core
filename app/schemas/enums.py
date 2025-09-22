@@ -1,6 +1,4 @@
 from enum import Enum
-from typing import Dict
-
 
 class Intent(str, Enum):
     REASONING = "reasoning"
