@@ -15,7 +15,7 @@ class ToolResponse(BaseModel):
     """Unified tool response model."""
     type: ToolResponseType
     content: str
-    response_generated_via: str
+    response_generated_via: Optional[str]
 
 class RouterGraphState(TypedDict, total=False):
     input_text: str
