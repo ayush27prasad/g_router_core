@@ -67,6 +67,22 @@ def _format_model_response(user_query: str, unformatted_model_response: str) -> 
     formatter_model_response = call_openai(model_name=formatter_model_name, system_msg=FORMATTER_PROMPT, human_msg=message)
     return formatter_model_response
 
+def call_social_media_model(user_query: str, messages: Optional[List[BaseMessage]] = None) -> ToolResponse:
+    """Call the social media model."""
+    social_media_model_name = "grok-4"
+    social_media_model_response = call_grok(model_name=social_media_model_name, system_msg=SOCIAL_MEDIA_PROMPT, human_msg=user_query, messages=messages)
+    social_media_model_response.response_generated_via = social_media_model_name
+    return social_media_model_response
+
+def call_india_facts_model(user_query: str, messages: Optional[List[BaseMessage]] = None) -> ToolResponse:
+    """Call the India facts model."""
+    india_facts_model_name = "sarvam-m"
+    raw_response = call_sarvam(user_query=user_query, messages=messages)
+    formatted_response = _format_model_response(user_query=user_query, unformatted_model_response=raw_response)
+    formatted_response.response_generated_via = india_facts_model_name
+    return formatted_response
+
+
 def call_model_by_name(model_name: str, user_query: str, messages: Optional[List[BaseMessage]] = None) -> ToolResponse:
     """Call the model by model name."""
     model_provider_company_mapping : Dict[ModelName, ModelProvider] = {

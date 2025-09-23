@@ -16,6 +16,7 @@ allowed_nodes = [
     "coding",
     "image_generation",
     "localized_india",
+    "social_media",
     "other",
 ]
 
@@ -61,6 +62,7 @@ def _route_user_query(state: RouterGraphState) ->  Literal[*allowed_nodes]:
         Intent.DEBUG_CODE: "coding",
         Intent.IMAGE_GENERATION: "image_generation",
         Intent.LOCALIZED_INDIA: "localized_india",
+        Intent.SOCIA_MEDIA: "social_media",
         Intent.OTHER: "other",
     }
     intent = state["analysis"].intent
@@ -109,9 +111,18 @@ def _fetch_real_time_info(state: RouterGraphState) -> RouterGraphState:
     return state
 
 def _resolve_localized_india_query(state: RouterGraphState) -> RouterGraphState:
-    # call the Sarvam model
+    # call the India facts model
     history = state.get("messages", [])
-    tool_response = tools.call_realtime_info_model(state["input_text"], messages=history)
+    tool_response = tools.call_india_facts_model(state["input_text"], messages=history)
+    state["response"] = tool_response
+    state["response_model_name"] = tool_response.response_generated_via
+    state["messages"] = [AIMessage(tool_response.content)]
+    return state
+
+def _resolve_social_media_query(state: RouterGraphState) -> RouterGraphState:
+    # call the social media model
+    history = state.get("messages", [])
+    tool_response = tools.call_realtime_info_model(state["input_text"], messages=history) # TODO: Use the social media model
     state["response"] = tool_response
     state["response_model_name"] = tool_response.response_generated_via
     state["messages"] = [AIMessage(tool_response.content)]
@@ -156,6 +167,7 @@ def build_router_graph(checkpointer: MemorySaver | None = None) -> Callable[[Rou
     graph.add_node("image_generation", _generate_image)
     graph.add_node("real_time_info", _fetch_real_time_info)
     graph.add_node("localized_india", _resolve_localized_india_query)
+    graph.add_node("social_media", _resolve_social_media_query)
     graph.add_node("other", _default_llm_call)
   
 
