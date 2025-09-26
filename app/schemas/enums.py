@@ -7,6 +7,7 @@ class Intent(str, Enum):
     DEBUG_CODE = "debug_code"
     IMAGE_GENERATION = "image_generation"
     LOCALIZED_INDIA = "localized_india"
+    SOCIA_MEDIA = "social_media"
     OTHER = "other"
 
 class ToolResponseType(str, Enum):

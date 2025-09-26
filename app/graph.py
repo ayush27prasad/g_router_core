@@ -1,9 +1,11 @@
 from typing import Callable, Literal, Dict
 
 from langgraph.graph import StateGraph, START, END
+from langgraph.checkpoint.memory import MemorySaver
+from langchain_core.messages import HumanMessage, AIMessage
 
 import app.tools as tools
-from app.schemas.models import RouterGraphState, Intent
+from app.schemas.models import RouterGraphState
 from app.schemas.enums import Intent
 
 
@@ -14,6 +16,7 @@ allowed_nodes = [
     "coding",
     "image_generation",
     "localized_india",
+    "social_media",
     "other",
 ]
 
@@ -24,7 +27,8 @@ def _analyze_user_query(state: RouterGraphState) ->  RouterGraphState:
     req_model_name = state.get("request_model_name")
     
     if (req_model_name == None):
-        text = state["input_text"]    
+        text = state["input_text"]
+
         # if model_name is not provided, analyze the intent
         analysis = tools.analyze_intent(text)
         print(f"User Query Analysis : {analysis}")
@@ -34,6 +38,10 @@ def _analyze_user_query(state: RouterGraphState) ->  RouterGraphState:
 
     else:
         print("Model Name is provided, no need to analyze the intent...")
+    
+    # Append the latest user message to history using the messages aggregator
+    if state.get("input_text"):
+        state["messages"] = [HumanMessage(state["input_text"])]
     
     # return the updated state with the analysis from the classifier model
     return state
@@ -54,6 +62,7 @@ def _route_user_query(state: RouterGraphState) ->  Literal[*allowed_nodes]:
         Intent.DEBUG_CODE: "coding",
         Intent.IMAGE_GENERATION: "image_generation",
         Intent.LOCALIZED_INDIA: "localized_india",
+        Intent.SOCIA_MEDIA: "social_media",
         Intent.OTHER: "other",
     }
     intent = state["analysis"].intent
@@ -66,44 +75,66 @@ def _route_user_query(state: RouterGraphState) ->  Literal[*allowed_nodes]:
 
 def _resolve_reasoning_query(state: RouterGraphState) -> RouterGraphState:
     # call the reasoning model tool
-    tool_response = tools.call_reasoning_model(state["input_text"])
+    history = state.get("messages", [])
+    tool_response = tools.call_reasoning_model(state["input_text"], messages=history)
     state["response"] = tool_response
     state["response_model_name"] = tool_response.response_generated_via
+    # Append assistant response to messages
+    state["messages"] = [AIMessage(tool_response.content)]
     return state
 
 def _resolve_coding_query(state: RouterGraphState) -> RouterGraphState:
     # call the coding model tool
-    tool_response = tools.call_coding_model(state["input_text"])
+    history = state.get("messages", [])
+    tool_response = tools.call_coding_model(state["input_text"], messages=history)
     state["response"] = tool_response
     state["response_model_name"] = tool_response.response_generated_via
+    state["messages"] = [AIMessage(tool_response.content)]
     return state
 
 def _generate_image(state: RouterGraphState) -> RouterGraphState:
     # call the coding model tool
-    tool_response = tools.call_image_generation_model(state["input_text"])
+    history = state.get("messages", [])
+    tool_response = tools.call_image_generation_model(state["input_text"], messages=history)
     state["response"] = tool_response
     state["response_model_name"] = tool_response.response_generated_via
+    state["messages"] = [AIMessage(tool_response.content)]
     return state
 
 def _fetch_real_time_info(state: RouterGraphState) -> RouterGraphState:
     # call the RAG model tool
-    tool_response = tools.call_realtime_info_model(state["input_text"])
+    history = state.get("messages", [])
+    tool_response = tools.call_realtime_info_model(state["input_text"], messages=history)
     state["response"] = tool_response
     state["response_model_name"] = tool_response.response_generated_via
+    state["messages"] = [AIMessage(tool_response.content)]
     return state
 
 def _resolve_localized_india_query(state: RouterGraphState) -> RouterGraphState:
-    # call the Sarvam model
-    tool_response = tools.call_realtime_info_model(state["input_text"])
+    # call the India facts model
+    history = state.get("messages", [])
+    tool_response = tools.call_india_facts_model(state["input_text"], messages=history)
     state["response"] = tool_response
     state["response_model_name"] = tool_response.response_generated_via
+    state["messages"] = [AIMessage(tool_response.content)]
+    return state
+
+def _resolve_social_media_query(state: RouterGraphState) -> RouterGraphState:
+    # call the social media model
+    history = state.get("messages", [])
+    tool_response = tools.call_realtime_info_model(state["input_text"], messages=history) # TODO: Use the social media model
+    state["response"] = tool_response
+    state["response_model_name"] = tool_response.response_generated_via
+    state["messages"] = [AIMessage(tool_response.content)]
     return state
 
 def _default_llm_call(state: RouterGraphState) -> RouterGraphState:
     # call the default LLM tool
-    tool_response = tools.call_default_model(state["input_text"])
+    history = state.get("messages", [])
+    tool_response = tools.call_default_model(state["input_text"], messages=history)
     state["response"] = tool_response
     state["response_model_name"] = tool_response.response_generated_via
+    state["messages"] = [AIMessage(tool_response.content)]
     return state
 
 def _call_model_by_name(state: RouterGraphState) -> RouterGraphState:
@@ -114,14 +145,16 @@ def _call_model_by_name(state: RouterGraphState) -> RouterGraphState:
         raise ValueError("Invalid request model name!!!")
 
     # call the model by name
-    tool_response = tools.call_model_by_name(req_model_name, state["input_text"])
+    history = state.get("messages", [])
+    tool_response = tools.call_model_by_name(req_model_name, state["input_text"], messages=history)
     state["response"] = tool_response
     state["response_model_name"] = tool_response.response_generated_via
+    state["messages"] = [AIMessage(tool_response.content)]
 
     return state
 
 # Build the router graph
-def build_router_graph() -> Callable[[RouterGraphState], RouterGraphState]:
+def build_router_graph(checkpointer: MemorySaver | None = None) -> Callable[[RouterGraphState], RouterGraphState]:
     graph = StateGraph(RouterGraphState)
 
     # Register nodes
@@ -134,6 +167,7 @@ def build_router_graph() -> Callable[[RouterGraphState], RouterGraphState]:
     graph.add_node("image_generation", _generate_image)
     graph.add_node("real_time_info", _fetch_real_time_info)
     graph.add_node("localized_india", _resolve_localized_india_query)
+    graph.add_node("social_media", _resolve_social_media_query)
     graph.add_node("other", _default_llm_call)
   
 
@@ -145,7 +179,9 @@ def build_router_graph() -> Callable[[RouterGraphState], RouterGraphState]:
     for node in allowed_nodes:
         graph.add_edge(node, END) # Add edges to the end node for all nodes
 
-    # Compile the graph
+    # Compile the graph with optional checkpointer for stateful memory across invocations
+    if checkpointer is not None:
+        return graph.compile(checkpointer=checkpointer)
     return graph.compile()
 
 

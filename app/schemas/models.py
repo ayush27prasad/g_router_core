@@ -1,6 +1,8 @@
 from typing import TypedDict, Optional
 
+from langgraph.graph import add_messages
 from pydantic import BaseModel, Field
+from typing_extensions import Annotated
 
 from .enums import Intent, ToolResponseType
 
@@ -19,6 +21,7 @@ class ToolResponse(BaseModel):
 
 class RouterGraphState(TypedDict, total=False):
     input_text: str
+    messages: Annotated[list, add_messages]
     request_model_name: Optional[str]
     response_model_name: str
     analysis: IntentAnalysis
